@@ -9,11 +9,8 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.NoSuchElementException;
 import java.util.Scanner;
 import java.util.StringTokenizer;
-
-import org.apache.commons.io.FileExistsException;
 
 public class Main {
 	static String var = new String();
@@ -25,47 +22,45 @@ public class Main {
 	static String date2;
 	static String path123;
 	static boolean key;
+	static int m; 
 
 	public static void main(String a[]) throws IOException, ParseException {
-
-		System.out.println("Enter the time from time and to time");
 		Scanner scanner = new Scanner(System.in);
-		from = scanner.next();//hh:mm:ss
-		to = scanner.next();//hh:mm:ss
-		System.out.println("Enter the time date");
-		date_1 = scanner.next();//mon/day/year 
-
+		System.out.print("Enter from time in hh:mm:ss format : ");
+		from = scanner.next(); //hh:mm:ss
+		System.out.print("Enter to time in hh:mm:ss format : ");
+		to = scanner.next(); //hh:mm:ss
+		
+		System.out.print("Enter the date in mm/dd/yyyy format: ");
+		date_1 = scanner.next(); //mm/dd/yyyy 	
 		filepath = "C:\\ok\\";
 		File file = new File(filepath);
 		File[] files = file.listFiles();
 		File directory = new File("C:\\ok\\");
 		int fileCount = directory.list().length;
-		System.out.println("File Count: " + fileCount);
-		int m = fileCount;
-		// for repeated file names
-		while (m != 0) {
-			filefunc(files);
+		System.out.println("-----------------------------");
+		System.out.println("Total file count: " + fileCount);
+		System.out.println("-----------------------------");
+		m = fileCount;
+		int repeat = m;
+		// for repeated file names		
+		while (m != 0 & repeat !=0 ) {
+			repeat = filefunc(files,m);
 			files = file.listFiles();
 			m = directory.list().length;
 		}
+	}     
 
-	}
-	//    }        
-
-	public static void filefunc(File[] files1) throws IOException, ParseException {
+	public static int filefunc(File[] files1, int n) throws IOException, ParseException {
 		for (File f : files1) {
 			try {
-				var1 = f.getName();
-				var = var1.replaceAll(" ", "");
-				
-				
+				var1 = f.getName();  //Rename file with underscore if there is space in the foldername.
+				var = var1.replaceAll(" ", "_");
+							
 				File file2 = new File("C:\\ok\\" + var1);
-				File newFile2 = new File("C:\\ok\\" + var);
-				
+				File newFile2 = new File("C:\\ok\\" + var);			
 				file2.renameTo(newFile2);
 				
-				//        System.out.println(f.getPath());
-				//        System.out.p2qrintln(filepath+var);
 				Process proc = Runtime.getRuntime().exec("cmd /c dir C:\\ok\\" + var + " /tc");
 
 				BufferedReader br = new BufferedReader(new InputStreamReader(proc.getInputStream()));
@@ -85,7 +80,8 @@ public class Main {
 				date2 = date;
 				String time = st.nextToken();// Get time
 
-				System.out.println(date + "    " + time);
+				System.out.println("Date : "+date);
+				System.out.println("Time : "+time);
 
 				String input = time;
 				// Format of the date defined in the input String
@@ -100,9 +96,8 @@ public class Main {
 					// Changing the format of date and storing it in String
 					output = outputformat.format(date1);
 					// Displaying the date
-					//    	    	    	 System.out.println(output);
 				} catch (ParseException pe) {
-					// Do nothing
+					System.out.println(pe);
 
 				}
 				boolean key = isTimeBetweenTwoTime(from, to, output + ":00");
@@ -110,12 +105,15 @@ public class Main {
 				if ((key == true) & (date_1.contentEquals(date))) {
 					Path temp = Files.move(Paths.get("C:\\ok\\" + var), Paths.get("C:\\ok1\\" + var));
 					if (temp != null) {
-						System.out.println("File moved successfully");
+						System.out.println("File "+var+" moved successfully");
 					} else {
 						System.out.println("Failed to move the file");
 					}
 				}
-			} 
+				else if(key==false) {
+					n = n-1;
+				}
+			}
 			
 			catch(Exception e) {
 					System.out.println(e);
@@ -127,16 +125,13 @@ public class Main {
 					File newFile = new File("C:\\ok\\" + path123);
 					if (file1.renameTo(newFile)) {
 						System.out.println("File rename success");
-						//    	    	            File file11 = new File(filepath);
-						//    	    	            files = file11.listFiles();        	    	            
 					} else {
 						System.out.println("File rename failed");
-					}
-				
+					}	
 			}
 			System.out.println("-----------------------------");
-
 		}
+		return n;
 	}
 
 	public static boolean isTimeBetweenTwoTime(String initialTime, String finalTime, String currentTime)
