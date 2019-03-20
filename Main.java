@@ -16,20 +16,31 @@ public class Main {
 	static String var = new String();
 	static String filepath = new String();
 	static String from;
+	static String from1;
 	static String var1;
 	static String to;
+	static String to1;
 	static String date_1;
 	static String date2;
 	static String path123;
 	static boolean key;
+	static String timecheck1;
 	static int m; 
 
 	public static void main(String a[]) throws IOException, ParseException {
 		Scanner scanner = new Scanner(System.in);
-		System.out.print("Enter from time in hh:mm:ss format : ");
-		from = scanner.next(); //hh:mm:ss
+		System.out.print("Enter from time in hh:mm:ss format : ");	
+		from1 = scanner.nextLine(); //hh:mm:ss
 		System.out.print("Enter to time in hh:mm:ss format : ");
-		to = scanner.next(); //hh:mm:ss
+		to1 = scanner.nextLine(); //hh:mm:ss
+		
+		String str = from1;
+		String[] splitStr = str.split("\\s+");
+		from = splitStr[0];
+		timecheck1 = splitStr[1];
+		String str1 = to1;
+		String[] splitStr1 = str1.split("\\s+");
+		to =  splitStr1[0];
 		
 		System.out.print("Enter the date in mm/dd/yyyy format: ");
 		date_1 = scanner.next(); //mm/dd/yyyy 	
@@ -54,14 +65,14 @@ public class Main {
 	public static int filefunc(File[] files1, int n) throws IOException, ParseException {
 		for (File f : files1) {
 			try {
-				var1 = f.getName();  //Rename file with underscore if there is space in the foldername.
-				var = var1.replaceAll(" ", "_");
-							
-				File file2 = new File("C:\\ok\\" + var1);
-				File newFile2 = new File("C:\\ok\\" + var);			
-				file2.renameTo(newFile2);
+				var = f.getName();  //Rename file with underscore if there is space in the foldername.
+//				var = var1.replaceAll(" ", "_");
+//							
+//				File file2 = new File("C:\\ok\\" + var1);
+//				File newFile2 = new File("C:\\ok\\" + var);			
+//				file2.renameTo(newFile2);
 				
-				Process proc = Runtime.getRuntime().exec("cmd /c dir C:\\ok\\" + var + " /tc");
+				Process proc = Runtime.getRuntime().exec("cmd /c dir \"C:\\ok\\" + var + "\" /tc");
 
 				BufferedReader br = new BufferedReader(new InputStreamReader(proc.getInputStream()));
 
@@ -76,10 +87,18 @@ public class Main {
 
 				// split by space
 				StringTokenizer st = new StringTokenizer(data);
+				
+//				while(st.hasMoreTokens()) {
+//					System.out.println(st.nextToken());
+//				}
+				
 				String date = st.nextToken();// Get date
 				date2 = date;
+				
 				String time = st.nextToken();// Get time
-
+						 
+				String timecheck = st.nextToken();
+				
 				System.out.println("Date : "+date);
 				System.out.println("Time : "+time);
 
@@ -102,7 +121,7 @@ public class Main {
 				}
 				boolean key = isTimeBetweenTwoTime(from, to, output + ":00");
 				
-				if ((key == true) & (date_1.contentEquals(date))) {
+				if ((key == true) & (date_1.contentEquals(date) & (timecheck1.contentEquals(timecheck)))) {
 					Path temp = Files.move(Paths.get("C:\\ok\\" + var), Paths.get("C:\\ok1\\" + var));
 					if (temp != null) {
 						System.out.println("File "+var+" moved successfully");
@@ -110,7 +129,7 @@ public class Main {
 						System.out.println("Failed to move the file");
 					}
 				}
-				else if(key==false) {
+				else if((key==false) | !(timecheck1==timecheck)) {
 					n = n-1;
 				}
 			}
