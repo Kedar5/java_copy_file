@@ -1,192 +1,121 @@
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Scanner;
-import java.util.StringTokenizer;
+import java.util.Date;
+import java.util.Properties;
+
+import javax.mail.Message;
+import javax.mail.MessagingException;
+import javax.mail.Session;
+import javax.mail.Transport;
+import javax.mail.internet.InternetAddress;
+import javax.mail.internet.MimeMessage;
 
 public class Main {
-	static String var = new String();
-	static String filepath = new String();
-	static String from;
-	static String from1;
-	static String var1;
-	static String to;
-	static String to1;
-	static String date_1;
-	static String date2;
-	static String path123;
-	static boolean key;
-	static String timecheck1;
-	static int m; 
+	static String fname;
+	static int count; 
+	public static void main(String[] args) {
+		Properties properties = new Properties();
+		String properties_path = System.getProperty("user.dir");
+		FileInputStream input;
+		SimpleDateFormat format2 = new SimpleDateFormat("MM/dd/yyyy HH:mm:ss");
+		SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy");
 
-	public static void main(String a[]) throws IOException, ParseException {
-		Scanner scanner = new Scanner(System.in);
-		System.out.print("Enter from time in hh:mm:ss format : ");	
-		from1 = scanner.nextLine(); //hh:mm:ss
-		System.out.print("Enter to time in hh:mm:ss format : ");
-		to1 = scanner.nextLine(); //hh:mm:ss
-		
-		String str = from1;
-		String[] splitStr = str.split("\\s+");
-		from = splitStr[0];
-		timecheck1 = splitStr[1];
-		String str1 = to1;
-		String[] splitStr1 = str1.split("\\s+");
-		to =  splitStr1[0];
-		
-		System.out.print("Enter the date in mm/dd/yyyy format: ");
-		date_1 = scanner.next(); //mm/dd/yyyy 	
-		filepath = "C:\\ok\\";
-		File file = new File(filepath);
-		File[] files = file.listFiles();
-		File directory = new File("C:\\ok\\");
-		int fileCount = directory.list().length;
-		System.out.println("-----------------------------");
-		System.out.println("Total file count: " + fileCount);
-		System.out.println("-----------------------------");
-		m = fileCount;
-		int repeat = m;
-		// for repeated file names		
-		while (m != 0 & repeat !=0 ) {
-			repeat = filefunc(files,m);
-			files = file.listFiles();
-			m = directory.list().length;
-		}
-	}     
-
-	public static int filefunc(File[] files1, int n) throws IOException, ParseException {
-		for (File f : files1) {
-			try {
-				var = f.getName();  //Rename file with underscore if there is space in the foldername.
-//				var = var1.replaceAll(" ", "_");
-//							
-//				File file2 = new File("C:\\ok\\" + var1);
-//				File newFile2 = new File("C:\\ok\\" + var);			
-//				file2.renameTo(newFile2);
-				
-				Process proc = Runtime.getRuntime().exec("cmd /c dir \"C:\\ok\\" + var + "\" /tc");
-
-				BufferedReader br = new BufferedReader(new InputStreamReader(proc.getInputStream()));
-
-				String data = "";
-
-				
-				for (int i = 0; i < 6; i++) {
-					data = br.readLine();
-				}
-
-				//System.out.println("Extracted value : " + data);
-
-				// split by space
-				StringTokenizer st = new StringTokenizer(data);
-				
-//				while(st.hasMoreTokens()) {
-//					System.out.println(st.nextToken());
-//				}
-				
-				String date = st.nextToken();// Get date
-				date2 = date;
-				
-				String time = st.nextToken();// Get time
-						 
-				String timecheck = st.nextToken();
-				
-				System.out.println("Date : "+date);
-				System.out.println("Time : "+time);
-
-				String input = time;
-				// Format of the date defined in the input String
-				DateFormat df = new SimpleDateFormat("hh:mm");
-				// Desired format: 24 hour format: Change the pattern as per the need
-				DateFormat outputformat = new SimpleDateFormat("HH:mm");
-				java.util.Date date1 = null;
-				String output = null;
-				try {
-					// Converting the input String to Date
-					date1 = df.parse(input);
-					// Changing the format of date and storing it in String
-					output = outputformat.format(date1);
-					// Displaying the date
-				} catch (ParseException pe) {
-					System.out.println(pe);
-
-				}
-				boolean key = isTimeBetweenTwoTime(from, to, output + ":00");
-				
-				if ((key == true) & (date_1.contentEquals(date) & (timecheck1.contentEquals(timecheck)))) {
-					Path temp = Files.move(Paths.get("C:\\ok\\" + var), Paths.get("C:\\ok1\\" + var));
-					if (temp != null) {
-						System.out.println("File "+var+" moved successfully");
-					} else {
-						System.out.println("Failed to move the file");
-					}
-				}
-				else if((key==false) | !(timecheck1==timecheck)) {
-					n = n-1;
-				}
-			}
+		try {
+			input = new FileInputStream(properties_path+File.separator+"propfile.properties");
+			properties.load(input);
 			
-			catch(Exception e) {
-					System.out.println(e);
-					System.out.println(var + " : File name already exists in destination folder");					
-					Scanner scanner = new Scanner(System.in);
-					System.out.println("Enter the new file name: ");
-					path123 = scanner.next();
-					File file1 = new File("C:\\ok\\" + var);
-					File newFile = new File("C:\\ok\\" + path123);
-					if (file1.renameTo(newFile)) {
-						System.out.println("File rename success");
-					} else {
-						System.out.println("File rename failed");
-					}	
-			}
-			System.out.println("-----------------------------");
+			Date date = new Date();	
+			String date1 = dateFormat.format(date);
+			
+			String destinationPath = properties.getProperty("destinationFilePath");
+			String sourcePath = properties.getProperty("sourceFilePath");
+			String fromTime = properties.getProperty("fromTime");
+			String toTime = properties.getProperty("toTime");
+			
+			String from1 = date1+" "+fromTime;
+			String to1 = date1+" "+toTime;
+			
+			Date from = format2.parse(from1);
+			Date to = format2.parse(to1);
+
+	    	File files = new File(sourcePath);
+	    	boolean a=false;
+	    	for (File f:files.listFiles()) {
+	    		if (f.isFile()) {
+	    			fname = f.getName();
+	    			a=false;
+	    			String mod = format2.format(f.lastModified());
+	    			Date modDate = format2.parse(mod);
+	   
+	    			if(modDate.equals(from) || modDate.equals(to)) {
+	    				a=true;
+	    			}
+	    			else if(modDate.after(from) && modDate.before(to)) {
+	    				a=true;
+	    			}
+	    			if(a){
+		    			File tempf= new File(destinationPath+File.separator+fname);
+						if(tempf.exists()) {
+							tempf.delete();
+							System.out.println("done");
+						}
+						Path temp = Files.copy(Paths.get(sourcePath+File.separator+fname), Paths.get(destinationPath+File.separator+fname));
+						if (temp != null) {
+							System.out.println("File "+fname+" copied to destination folder successfully");
+							count = count+1;
+						} else {
+							System.out.println("Failed to copy the file");
+						}
+		    		}
+	    		}
+	    	}
+	    	System.out.println("Count: "+count);
+	    	String sub = "Daily Task|"+count+" files copied";
+			String msg = count+" files copied";
+			Mail(sub,msg);
 		}
-		return n;
-	}
-
-	public static boolean isTimeBetweenTwoTime(String initialTime, String finalTime, String currentTime)
-			throws ParseException {
-
-		String reg = "^([0-1][0-9]|2[0-3]):([0-5][0-9]):([0-5][0-9])$";
-		if (initialTime.matches(reg) && finalTime.matches(reg) && currentTime.matches(reg)) {
-			boolean valid = false;
-			// Start Time
-			// all times are from java.util.Date
-			java.util.Date inTime = new SimpleDateFormat("HH:mm:ss").parse(initialTime);
-			Calendar calendar1 = Calendar.getInstance();
-			calendar1.setTime(inTime);
-
-			// Current Time
-			java.util.Date checkTime = new SimpleDateFormat("HH:mm:ss").parse(currentTime);
-			Calendar calendar3 = Calendar.getInstance();
-			calendar3.setTime(checkTime);
-
-			// End Time
-			java.util.Date finTime = new SimpleDateFormat("HH:mm:ss").parse(finalTime);
-			Calendar calendar2 = Calendar.getInstance();
-			calendar2.setTime(finTime);
-
-			if (finalTime.compareTo(initialTime) < 0) {
-				calendar2.add(Calendar.DATE, 1);
-				calendar3.add(Calendar.DATE, 1);
-			}
-
-			java.util.Date actualTime = calendar3.getTime();
-			if ((actualTime.after(calendar1.getTime()) || actualTime.compareTo(calendar1.getTime()) == 0)
-					&& actualTime.before(calendar2.getTime())) {
-				valid = true;
-				return valid;
-			}
+		catch(Exception e){
+			System.out.println(e.getMessage());
 		}
-		return false;
 	}
+	public static void Mail(String subject1,String message1){
+	  Properties prop = new Properties();
+	  InputStream input = null;
+	  String propPath = System.getProperty("user.dir");
+	  try {
+		input = new FileInputStream(propPath+File.separator+"propfile.properties");
+		prop.load(input);
+	  } catch (Exception e) {
+		e.printStackTrace();
+	  }
+		
+	  String host = prop.getProperty("mail.smtp.host");
+	  String to = prop.getProperty("smtp.toEmail");
+	  String from = prop.getProperty("smtp.fromEmail");
+	  
+	  Properties property = new	Properties();
+	  property.put("mail.smtp.host",host);
+	  
+      Session session = Session.getDefaultInstance(property);  
+  
+     //compose the message  
+      try{  
+         MimeMessage message = new MimeMessage(session);
+         message.setFrom(new InternetAddress(from));  
+         message.addRecipients(Message.RecipientType.TO,InternetAddress.parse(to)); 
+         message.setSubject(subject1);  
+         message.setText(message1);  
+  
+         // Send message  
+         Transport.send(message);  
+         System.out.println("message sent successfully....");  
+      }catch (MessagingException mex) {
+    	  mex.printStackTrace();
+      }  
+   }
 }
